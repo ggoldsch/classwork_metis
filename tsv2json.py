@@ -24,16 +24,16 @@ for key in y1931_table:
 	each_point = []
 	each_point.append(site)
 	each_point.append(variety)
-	each_point.append(y1932_table[key])
 	each_point.append(y1931_table[key])
+	each_point.append(y1932_table[key])
 	barley.append(each_point)
 
 f = open('new_barley.tsv','w')
-line = 'site\tvariety\tx\ty\n'
+line = 'site\tvariety\tyld_1931\tyld_1932\n'
 f.write(line)
 for data in barley:
-	(site, variety, x, y) = data
-	line = '%s\t%s\t%s\t%s\n'%(site,variety,x,y)
+	(site, variety, yld_1931, yld_1932) = data
+	line = '%s\t%s\t%s\t%s\n'%(site,variety,yld_1931,yld_1932)
 	f.write(line)
 f.close()
 

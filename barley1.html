@@ -29,29 +29,36 @@
   }
 
   .point {
-	fill: steelblue;
+	//fill: steelblue;
 	stroke: #000;
   }
 
 </style>
 
 <body>
+<form>
+	<input type="radio" name="site-variety" value="site" checked>site
+	<input type="radio" name="site-variety" value="variety">variety
+</form>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
 
 <script>
   //JS to go here
+var color = d3.scale.category10();
+
 var margin = {top: 20, right: 20, bottom: 30, left: 40};
 
-//var width  = 960 - margin.left - margin.right,
-//    height = 500 - margin.top - margin.bottom;
-var width  = 600 - margin.left - margin.right;
-var height = width;
+var width_xl  = 600
+var height_xl = 600
 
-var x = d3.scale.linear()
+var width   = width_xl  - margin.left - margin.right;
+var height  = height_xl - margin.top - margin.bottom;
+
+var xScale = d3.scale.linear()
     .range([0, width]);
 
-var y = d3.scale.linear()
+var yScale = d3.scale.linear()
     .range([height, 0]);
 
 //var xAxis = d3.svg.axis()
@@ -66,56 +73,93 @@ var y = d3.scale.linear()
 //    .tickPadding(8)
 //    .orient("right");
 
+// create svg container, and g container inside it. 
+// shift g container by top and left margins inside.
 var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", width_xl)
+    .attr("height", height_xl)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+var site_variety = d3.select('input[name="site-variety"]:checked').property("value");
+console.log(site_variety)
 
 d3.tsv("new_barley.tsv", function(error, data) {
 	if (error) throw error;
+	//console.log(data);
+
 	// coerce data to numbers
 	data.forEach(function(d){
-		d.x = +d.x;
-		d.y = +d.y;
+		d.yld_1931 = +d.yld_1931;
+		d.yld_1932 = +d.yld_1932;
     	});
+
 	// compute the scales' domains
-	x.domain(d3.extent(data, function(d){return d.x})).nice();
-	y.domain(d3.extent(data, function(d){return d.y})).nice();
+	xmin = d3.min(data, function(d){return d.yld_1932})
+	xmax = d3.max(data, function(d){return d.yld_1932})
+	ymin = d3.min(data, function(d){return d.yld_1931})
+	ymax = d3.max(data, function(d){return d.yld_1931})
+	console.log(xmin,xmax)
+	console.log(ymin,ymax)
+	// find common min & max
+	xy_min = d3.min([xmin, ymin])
+	xy_max = d3.max([xmax, ymax])
+	console.log(xy_min, xy_max)
+
+	//xScale.domain(d3.extent(data, function(d){return d.yld_1932})).nice();
+	//yScale.domain(d3.extent(data, function(d){return d.yld_1931})).nice();
+	// coerce common x&y scale
+	xScale.domain([xy_min, xy_max]).nice();
+	yScale.domain([xy_min, xy_max]).nice();
 
 	// Add the x-axis
 	svg.append("g")
     	.attr("class", "x axis")
     	.attr("transform", "translate(0," + (height) + ")")
+	.attr("text", "Hi There")
+    	.call(d3.svg.axis().scale(xScale).orient("bottom"));
     	//.call(xAxis);
-    	.call(d3.svg.axis().scale(x).orient("bottom"));
 
 	// Add the y-axis
 	svg.append("g")
     	.attr("class", "y axis")
+    	.call(d3.svg.axis().scale(yScale).orient("left"));
     	//.call(yAxis);
-    	.call(d3.svg.axis().scale(y).orient("left"));
 
+	// Add diagonal
+	var lines = svg.append("line")
+		.style("stroke", "black")
+		.attr("x1", xy_min)
+		.attr("y1", xy_min)
+		.attr("x2", xy_max)
+		.attr("y2", xy_max)
+		//.call(d3.svg.diagonal())
+    		//.call(d3.svg.axis().scale(yScale));
+		
 
-	//console.log(data)
-	
 	//add points
 	svg.selectAll(".point")
 		.data(data)
 		.enter().append("circle")
 		.attr("class", "point")
-		.attr("r", 4.5)
-		.attr("cx", function(d) { return x(d.x); })
-		.attr("cy", function(d) { return y(d.y); });
+		.attr("r", 5)
+		//.attr("fill", "red")
+		//.attr("fill", function(d) { return color(d.variety); })
+		.attr("fill", function(d) { 
+			if (site_variety === "site") {
+				return color(d.site);
+			} else {
+				return color(d.site); }
+			})
+		.attr("cx", function(d) { return xScale(d.yld_1932); })
+		.attr("cy", function(d) { return yScale(d.yld_1931); })
+		.on("mouseover", function(d) {
+			console.log("mouseover on data point", d.site, d.variety);
+			return d.variety;
+			})
 });
 
-
-
-
-
 </script>
-
 
 </body>
 
