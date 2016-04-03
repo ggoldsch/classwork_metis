@@ -147,15 +147,24 @@ d3.tsv("new_barley.tsv", function(error, data) {
     	.call(d3.svg.axis().scale(yScale).orient("left"));
     	//.call(yAxis);
 
+
 	// Add diagonal
-	var lines = svg.append("line")
-		.style("stroke", "black")
-		.attr("x1", xy_min)
-		.attr("y1", xy_min)
-		.attr("x2", xy_max)
-		.attr("y2", xy_max)
-		//.call(d3.svg.diagonal())
-    		//.call(d3.svg.axis().scale(yScale));
+	var lineData = [ { "x": 0,   "y": height},  { "x": width,  "y": 0} ];
+ 
+	//This is the accessor function 
+	var lineFunction = d3.svg.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                .interpolate("linear");
+
+
+	//The line SVG Path we draw
+	var lineGraph = svg.append("path")
+                .attr("d", lineFunction(lineData))
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("fill", "none");
+
 		
 	// On radio button click, change colors.
 	d3.select("form")
@@ -165,7 +174,7 @@ d3.tsv("new_barley.tsv", function(error, data) {
 			.property("value");
 		console.log(site_variety)
         
-        	d3.selectAll(".points")
+        	svg.selectAll(".point")
 			.attr("fill", function(d) { 
 				if (site_variety === "site") {
 					return color(d.site);
@@ -188,18 +197,18 @@ d3.tsv("new_barley.tsv", function(error, data) {
 			} else {
 				return color(d.variety); }
 			})
-		.attr("cx", function(d) { return xScale(d.yld_1932); })
-		.attr("cy", function(d) { return yScale(d.yld_1931); })
+		.attr("cx", function(d) { return xScale(d.yld_1931); })
+		.attr("cy", function(d) { return yScale(d.yld_1932); })
 		.on("mouseover", function(d) {
 			console.log("mouseover on data point", d.site, d.variety);
 			popup_div.html(	
 				"&nbsp;site: " +d.site+ "<br>"+
 			 	"&nbsp;variety: " +d.variety+ "<br>"+
-				"&nbsp;yields: " +d.yld_1932+ ",&nbsp;" +d.yld_1931)
+				"&nbsp;yields: " +d.yld_1931+ ",&nbsp;" +d.yld_1932)
 				// the following positions the popup.
 				.style("left", (d3.event.pageX + 9) + "px")
         			.style("top", (d3.event.pageY - 43) + "px")
-				.style("opacity",0.5); })
+				.style("opacity",0.75); })
 		.on("mouseleave", function(d) {
 			popup_div.html("bye")
 				.style("opacity",0); });
